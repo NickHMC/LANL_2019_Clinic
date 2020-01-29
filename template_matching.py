@@ -1,47 +1,83 @@
-
 import numpy as np
 from spectrogram import Spectrogram
 import peak_follower
 import baselines as bls
 
+from ImageProcessing.Templates.templates import *
+# These are the templates that are in the folder ImageProcessing\Templates\templates.py
+# How it is currently written will import everything from that file.
+
 
 class Template:
 
     def __init__(self,
-                 width=None,
-                 height=None,
-                 values=None
+                 values:list = None,
+                 vertical:bool = True
                  ):
 
-        self.width = width if width != None else 0
-        self.height = height if height != None else 0
-        self.values = values if values != None else []
+        """
+            Create a template mask.
+
+            values: a matrix specifying the weight of that specific pixel
+                in the template.
+            vertical: a boolean that specifies if the template is 1-d whether
+                it is to be used vertically or horizontally.
+        """
+        self.values = np.array(values) if values != None else np.empty((0,0))
+
+        self.width = None  # How wide.
+        self.height = None # How tall.
+        if len(self.values.shape) == 2:
+            self.height, self.width = self.values.shape
+
+        elif len(self.values.shape) == 1:
+            if vertical:
+                self.height = self.values.shape[0]
+            else:
+                self.width = self.values.shape[0]
+        else:
+            raise ValueError(f"It is assumed that the input template will be a 2-dimensional template. " \
+        +"You input an array which has {len(self.values.shape)}-dimensions")
 
 
-start_pattern = [
-            [-1, -1, -1, -1],
-            [-1, -1, 5,  5 ],
-            [-1, -1, -1, -1]]
-
-start_pattern2 = [
-            [-1, -1, -1, 4],
-            [-1, -1, 4,  4],
-            [-1, -1, -1,-1]]
-
-start_pattern3 = [
-            [-1, -1, -1, 3],
-            [-1, -1, 3,  3],
-            [-1, -1, -1, 3]]
-
-start_pattern4 = [
-            [-3, -2, -1, 2],
-            [-3, -1, 2,  3],
-            [-3, -2, -1, 2]]
 
 
+    def calculate_score(self, intensities:list, velInd:int, timeInd:int):
+        """
+            Input:
+                intensities: This is a 2-d matrix that I will assume has the appropriate shape
+                    to match the template in the positive quadrant with
+                    the origin at the index (velInd, timeInd).
+                velInd: integer
+                timeInd: integer
+            Output:
+                Compute the product sum of the intensities and the template
+                starting at velInd and timeInd.
+                returns - float
+        """
+        intensities = np.array(intensities) # convert the system to an numpy array so that you can slice it easily.
+        regionIntensity = None
+        if self.width == None:
+            # This is a vertical template.
+            regionIntensity = intensities[velInd:velInd+self.height+1,timeInd]
+        elif self.height == None:
+            # This is a horizontal template.
+            regionIntensity = intensities[velInd,timeInd:timeInd+self.width+1]
+        else:
+            # This is the standard 2-d template.
+            # I am assuming that the height will align with the
+            # velocity and the width with the time axes.
+            regionIntensity = intensities[velInd:velInd+self.height+1,timeInd:timeInd+self.width+1]
+
+        return np.sum(self.values*regionIntensity)
 
 def calculate_score(index, template, intensities, time_index):
+    """
+        This currently just applies each row of the template to the
+        same row in the intensity matrix.
 
+        XXXX: Is that what we want #TODO: 
+    """
     template_sum = 0        
 
     for values in template.values:
@@ -225,13 +261,15 @@ def find_potenital_start_points(sgram, all_scores):
 
     return interesting_points
 
-
+print("I still have the start_pattern matrix", start_pattern)
 
 if __name__ == '__main__':
     import os
     from digfile import DigFile
 
     path = "/Users/trevorwalker/Desktop/Clinic/For_Candace/newdigs"
+    # It is better to use a relative path when you are working with this,
+    # in case we need to debug it on another computer.
     os.chdir(path)
     df = DigFile('CH_2_009.dig')
 
