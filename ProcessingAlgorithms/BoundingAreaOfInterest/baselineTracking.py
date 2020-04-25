@@ -57,7 +57,10 @@ def baselineTracking(spectrogram:Spectrogram, baselineVel, changeThreshold, skip
 
 
 def runExperiment(trainingFilePath, thresholds:list, skipUntilTimes:list = []):
-    import baselines
+    currLocalDir = os.getcwd()
+    os.chdir(os.path.split(__file__)[0])
+    from baselines import baselines_by_squash
+    os.chdir(currLocalDir)
 
     data = pd.read_excel(trainingFilePath)
 
@@ -140,6 +143,9 @@ def runExperiment(trainingFilePath, thresholds:list, skipUntilTimes:list = []):
 
 if __name__ == "__main__":
 
+    currDir = os.getcwd()
+    os.chdir(Spectrogram.root_code_dir())
+
     thresholds = np.linspace(0.3, 1)
     skipUntilTimes = [12e-6]
     saveLoc = r"../baselineIntensityMaps"
@@ -156,3 +162,4 @@ if __name__ == "__main__":
         saveBaselineIntensityImages(files, imageExt = "jpeg")
 
     runExperiment(experimentFileName, thresholds, skipUntilTimes)
+    os.chdir(currDir)

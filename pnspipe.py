@@ -397,7 +397,7 @@ def find_baselines(pipe: PNSPipe, **kwargs):
     that are larger than this value (which should be between
     0 and 1).
     """
-    from baselines import baselines_by_squash as bline
+    from ProcessingAlgorithms.BoundingAreaOfInterest.baselines import baselines_by_squash as bline
     peaks, widths, heights = bline(pipe.spectrogram)
     baseline_limit = kwargs.get('baseline_limit', 0.01)
     pipe.baselines = peaks[heights > baseline_limit]

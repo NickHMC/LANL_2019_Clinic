@@ -125,6 +125,19 @@ class Spectrogram:
         except:
             self._compute(ending, **kwargs)
             # self._save()
+    
+    @staticmethod
+    def root_code_dir():
+        """
+        Compute the path for the root folder that contains the code.
+        """
+        gitRep = "LANL_2019_Clinic" # This is the name of the root folder for the source.
+        # We are operating under the assumption that the data files (dig files) will be
+        # in a folder that is on the same level as this source folder.
+        parent, curr = __file__, ""
+        while curr != gitRep:
+            parent, curr = os.path.split(parent)
+        return os.path.realpath(os.path.join(parent, gitRep))
 
     def _compute(self, ending, **kwargs):
         """
@@ -336,7 +349,7 @@ class Spectrogram:
             prob_greater
         """
         from fit import DoubleExponential, Exponential
-        from baselines import baselines_by_squash
+        from ProcessingAlgorithms.BoundingAreaOfInterest.baselines import baselines_by_squash
 
         v_min = kwargs.get('v_min')
         if not v_min:
@@ -546,8 +559,8 @@ class Spectrogram:
         the baseline intensity.
         """
         from baselineTracking import baselineTracking
-        import baselines
-        peaks, _, _ = baselines.baselines_by_squash(self)
+        from ProcessingAlgorithms.BoundingAreaOfInterest.baselines import baselines_by_squash
+        peaks, _, _ = baselines_by_squash(self)
         self.estimatedStartTime_ = baselineTracking(self, peaks[0], 0.024761904761904763)
 
     def plotHist(self, fig = None, minFrac=0.0, maxFrac = 1.0, numBins = 1001, **kwargs):
