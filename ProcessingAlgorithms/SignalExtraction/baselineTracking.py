@@ -81,8 +81,9 @@ def baselineExperiment(baselineIntensity:np.array, thresholds:np.array, skipFirs
             numPassedThres += 1
             if numPassedThres >= len(thresholds):
                 return outputTimeInds # nothing left to check.
-        currTimeInd += 1
         runningAverage += 1 / (currTimeInd + 1) * (currentIntensity - runningAverage)
+        currTimeInd += 1
+
 
     for k in range(numPassedThres, len(thresholds)):
         outputTimeInds[k] = time_len - 1
@@ -208,10 +209,10 @@ def runAgainstTestSet(testSetFilename, guessAtOptimalThres, guessAtOptimalSkipUn
         d["ProbeDestructionEstimateTime"][i] = timeEstimate
         d["Error Versus Label"][i] = np.power(bestGuessTimes[i] - timeEstimate, errorPower)
 
-    errors = d["Error Versus Label"]
+    localerrors = d["Error Versus Label"]
 
     print(f"The statistics for the test set specified by {testSetFilename}\n")
-    print(f"Avg: {np.mean(errors)} Std: {np.std(errors)} Median: {np.median(errors)} Max: {np.max(errors)} Min: {np.min(errors)}")
+    print(f"Avg: {np.mean(localerrors)} Std: {np.std(localerrors)} Median: {np.median(localerrors)} Max: {np.max(localerrors)} Min: {np.min(localerrors)}")
 
     return d
 
